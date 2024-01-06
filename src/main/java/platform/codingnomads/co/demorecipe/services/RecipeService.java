@@ -55,6 +55,15 @@ public class RecipeService {
         return recipes;
     }
 
+    public List<Recipe> getRecipesWithMinimumAverageRating(double minimumAverageRating) throws NoSuchRecipeException {
+        List<Recipe> recipes = recipeRepo.findRecipesWithMinAverageRating(minimumAverageRating);
+
+        if (recipes.isEmpty()) {
+            throw new NoSuchRecipeException("There are no recipes with an average rating above " + minimumAverageRating + ".");
+        }
+        return recipes;
+    }
+
     @Transactional
     public Recipe deleteRecipeById(Long id) throws NoSuchRecipeException {
         try {

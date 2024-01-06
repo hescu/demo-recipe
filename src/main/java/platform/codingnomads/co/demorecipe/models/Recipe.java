@@ -73,4 +73,15 @@ public class Recipe {
             //Exception should stop here.
         }
     }
+
+    public double calculateAverageRating() {
+        if (reviews == null || reviews.isEmpty()) {
+            return 0.0;
+        }
+        double sum = 0.0;
+        for (Review review : reviews) {
+            sum += review.getRating();
+        }
+        return sum / reviews.size();
+    }
 }

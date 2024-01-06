@@ -37,7 +37,7 @@ public class RecipeController {
         }
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<?> getAllRecipes() {
         try {
             return ResponseEntity.ok(recipeService.getAllRecipes());
@@ -50,6 +50,16 @@ public class RecipeController {
     public ResponseEntity<?> getRecipesByName(@PathVariable("name") String name) {
         try {
             List<Recipe> matchingRecipes = recipeService.getRecipesByName(name);
+            return ResponseEntity.ok(matchingRecipes);
+        } catch (NoSuchRecipeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @GetMapping()
+    public ResponseEntity<?> getAllRecipesBasedOnMinimumAverageRating(@RequestParam(name = "minimum_average_rating") double minimumAverageRating) {
+        try {
+            List<Recipe> matchingRecipes = recipeService.getRecipesWithMinimumAverageRating(minimumAverageRating);
             return ResponseEntity.ok(matchingRecipes);
         } catch (NoSuchRecipeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
