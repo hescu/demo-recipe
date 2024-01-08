@@ -2,6 +2,7 @@ package platform.codingnomads.co.demorecipe.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import platform.codingnomads.co.demorecipe.exceptions.NoReviewingYourOwnRecipesException;
 import platform.codingnomads.co.demorecipe.exceptions.NoSuchRecipeException;
 import platform.codingnomads.co.demorecipe.exceptions.NoSuchReviewException;
 import platform.codingnomads.co.demorecipe.models.Recipe;
@@ -10,6 +11,7 @@ import platform.codingnomads.co.demorecipe.repositories.ReviewRepo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -51,8 +53,11 @@ public class ReviewService {
         return reviews;
     }
 
-    public Recipe postNewReview(Review review, Long recipeId) throws NoSuchRecipeException {
+    public Recipe postNewReview(Review review, Long recipeId) throws NoSuchRecipeException, NoReviewingYourOwnRecipesException {
         Recipe recipe = recipeService.getRecipeById(recipeId);
+        if (checkIfSubmittingReviewOnOwnRecipe(review, recipe)) {
+            throw new NoReviewingYourOwnRecipesException("Really?! You're trying to review your own recipe?! Have some class!");
+        }
         recipe.getReviews().add(review);
         recipeService.updateRecipe(recipe, false);
         return recipe;
@@ -77,5 +82,9 @@ public class ReviewService {
         }
         reviewRepo.save(reviewToUpdate);
         return reviewToUpdate;
+    }
+
+    private boolean checkIfSubmittingReviewOnOwnRecipe(Review review, Recipe recipe) {
+        return (Objects.equals(review.getUsername(), recipe.getUsername()));
     }
 }

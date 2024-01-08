@@ -3,6 +3,7 @@ package platform.codingnomads.co.demorecipe.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import platform.codingnomads.co.demorecipe.exceptions.NoReviewingYourOwnRecipesException;
 import platform.codingnomads.co.demorecipe.exceptions.NoSuchRecipeException;
 import platform.codingnomads.co.demorecipe.exceptions.NoSuchReviewException;
 import platform.codingnomads.co.demorecipe.models.Recipe;
@@ -53,7 +54,7 @@ public class ReviewController {
         try {
             Recipe insertedRecipe = reviewService.postNewReview(review, recipeId);
             return ResponseEntity.created(insertedRecipe.getLocationURI()).body(insertedRecipe);
-        } catch (NoSuchRecipeException e) {
+        } catch (NoSuchRecipeException | NoReviewingYourOwnRecipesException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
