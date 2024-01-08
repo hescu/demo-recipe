@@ -56,10 +56,31 @@ public class RecipeController {
         }
     }
 
-    @GetMapping()
+    @GetMapping("/search/username/{username}")
+    public ResponseEntity<?> getRecipesByUsername(@PathVariable("username") String username) {
+        try {
+            List<Recipe> matchingRecipes = recipeService.getRecipesByUsername(username);
+            return ResponseEntity.ok(matchingRecipes);
+        } catch (NoSuchRecipeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @GetMapping(value = "/search", params = "minimum_average_rating")
     public ResponseEntity<?> getAllRecipesBasedOnMinimumAverageRating(@RequestParam(name = "minimum_average_rating") double minimumAverageRating) {
         try {
             List<Recipe> matchingRecipes = recipeService.getRecipesWithMinimumAverageRating(minimumAverageRating);
+            return ResponseEntity.ok(matchingRecipes);
+        } catch (NoSuchRecipeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @GetMapping(value = "/search", params = {"name", "max_difficulty_rating"})
+    public ResponseEntity<?> getRecipesByNameAndMaxDifficultyRating(@RequestParam(name = "name") String name,
+                                                                    @RequestParam(name = "max_difficulty_rating") int maxDifficultyRating) {
+        try {
+            List<Recipe> matchingRecipes = recipeService.getRecipesByNameAndMaxDifficultyRating(name, maxDifficultyRating);
             return ResponseEntity.ok(matchingRecipes);
         } catch (NoSuchRecipeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());

@@ -13,4 +13,8 @@ public interface RecipeRepo extends JpaRepository<Recipe, Long> {
 
     @Query(value = "SELECT r.* FROM Recipe r WHERE :minRating <= (SELECT AVG(rr.rating) FROM Review rr WHERE rr.recipe_id = r.id GROUP BY rr.recipe_id)", nativeQuery = true)
     List<Recipe> findRecipesWithMinAverageRating(@Param("minRating") double minRating);
+
+    List<Recipe> findByNameContainingAndDifficultyRatingLessThanEqual(String name, int maxDifficultyRating);
+
+    List<Recipe> findByUsernameContainingIgnoreCase(String username);
 }

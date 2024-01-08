@@ -46,6 +46,16 @@ public class RecipeService {
         return matchingRecipes;
     }
 
+    public List<Recipe> getRecipesByUsername(String username) throws NoSuchRecipeException {
+        List<Recipe> matchingRecipes = recipeRepo.findByUsernameContainingIgnoreCase(username);
+
+        if (matchingRecipes.isEmpty()) {
+            throw new NoSuchRecipeException("No recipes created by that username could be found.");
+        }
+
+        return matchingRecipes;
+    }
+
     public List<Recipe> getAllRecipes() throws NoSuchRecipeException {
         List<Recipe> recipes = recipeRepo.findAll();
 
@@ -60,6 +70,15 @@ public class RecipeService {
 
         if (recipes.isEmpty()) {
             throw new NoSuchRecipeException("There are no recipes with an average rating above " + minimumAverageRating + ".");
+        }
+        return recipes;
+    }
+
+    public List<Recipe> getRecipesByNameAndMaxDifficultyRating(String name, int maxDifficultyRating) throws NoSuchRecipeException {
+        List<Recipe> recipes = recipeRepo.findByNameContainingAndDifficultyRatingLessThanEqual(name, maxDifficultyRating);
+
+        if (recipes.isEmpty()) {
+            throw new NoSuchRecipeException("There are no recipes with name: " + name + " and a maximum difficulty rating of " + maxDifficultyRating);
         }
         return recipes;
     }
