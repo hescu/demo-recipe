@@ -3,6 +3,7 @@ package platform.codingnomads.co.demorecipe.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import platform.codingnomads.co.demorecipe.exceptions.AggregateMissingFieldsException;
 
 import javax.persistence.*;
 import java.net.URI;
@@ -57,11 +58,22 @@ public class Recipe {
         this.difficultyRating = difficultyRating;
     }
 
-    public void validate() throws IllegalStateException {
-        if (ingredients.isEmpty()) {
-            throw new IllegalStateException("You have to have at least one ingredient for your recipe!");
-        } else if (steps.isEmpty()) {
-            throw new IllegalStateException("You have to include at least one step for your recipe!");
+    public void validateRecipe() throws AggregateMissingFieldsException {
+        AggregateMissingFieldsException missingFieldsException = new AggregateMissingFieldsException();
+        if (ingredients == null || ingredients.isEmpty()) {
+            missingFieldsException.addExceptionToBasket(new IllegalStateException("You have to have at least one ingredient for your recipe!"));
+        }
+        if (steps == null || steps.isEmpty()) {
+            missingFieldsException.addExceptionToBasket(new IllegalStateException("You have to include at least one step for your recipe!"));
+        }
+        if (name == null || name.isEmpty()) {
+            missingFieldsException.addExceptionToBasket(new IllegalStateException("Recipe name missing!"));
+        }
+        if (username == null || username.isEmpty()) {
+            missingFieldsException.addExceptionToBasket(new IllegalStateException("Username missing!"));
+        }
+        if (!missingFieldsException.getBasket().isEmpty()) {
+            throw missingFieldsException;
         }
     }
 

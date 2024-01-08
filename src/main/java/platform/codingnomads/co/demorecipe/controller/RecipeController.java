@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import platform.codingnomads.co.demorecipe.exceptions.AggregateMissingFieldsException;
 import platform.codingnomads.co.demorecipe.exceptions.NoSuchRecipeException;
 import platform.codingnomads.co.demorecipe.models.Recipe;
 import platform.codingnomads.co.demorecipe.services.RecipeService;
@@ -22,8 +23,8 @@ public class RecipeController {
         try {
             Recipe insertedRecipe = recipeService.createNewRecipe(recipe);
             return ResponseEntity.created(insertedRecipe.getLocationURI()).body(insertedRecipe);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (AggregateMissingFieldsException e) {
+            return ResponseEntity.badRequest().body(e.getCombinedMessage());
         }
     }
 
@@ -105,6 +106,8 @@ public class RecipeController {
             return ResponseEntity.ok(returnedUpdatedRecipe);
         } catch (NoSuchRecipeException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (AggregateMissingFieldsException e) {
+            return ResponseEntity.badRequest().body(e.getCombinedMessage());
         }
     }
 }

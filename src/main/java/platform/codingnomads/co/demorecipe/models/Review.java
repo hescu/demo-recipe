@@ -1,6 +1,8 @@
 package platform.codingnomads.co.demorecipe.models;
 
 import lombok.*;
+import platform.codingnomads.co.demorecipe.exceptions.AggregateMissingFieldsException;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -21,15 +23,24 @@ public class Review {
     @NotNull
     private String username;
 
+    @NotNull
     private int rating;
 
     @NotNull
     private String description;
 
-    public void setRating(int rating) {
+    public void validateReview(int rating) throws AggregateMissingFieldsException{
+        AggregateMissingFieldsException missingFieldsException = new AggregateMissingFieldsException();
         if (rating <= 0 || rating > 10) {
-            throw new IllegalStateException("Rating must be between 0 and 10.");
+            missingFieldsException.addExceptionToBasket(new IllegalStateException("Rating must be between 0 and 10!"));
+        } else {
+            this.rating = rating;
         }
-        this.rating = rating;
+        if (username == null || username.isEmpty()) {
+            missingFieldsException.addExceptionToBasket(new IllegalStateException("Username missing!"));
+        }
+        if (!missingFieldsException.getBasket().isEmpty()) {
+            throw missingFieldsException;
+        }
     }
 }

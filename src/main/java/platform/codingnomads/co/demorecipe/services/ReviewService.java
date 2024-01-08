@@ -2,6 +2,7 @@ package platform.codingnomads.co.demorecipe.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import platform.codingnomads.co.demorecipe.exceptions.AggregateMissingFieldsException;
 import platform.codingnomads.co.demorecipe.exceptions.NoReviewingYourOwnRecipesException;
 import platform.codingnomads.co.demorecipe.exceptions.NoSuchRecipeException;
 import platform.codingnomads.co.demorecipe.exceptions.NoSuchReviewException;
@@ -53,7 +54,8 @@ public class ReviewService {
         return reviews;
     }
 
-    public Recipe postNewReview(Review review, Long recipeId) throws NoSuchRecipeException, NoReviewingYourOwnRecipesException {
+    public Recipe postNewReview(Review review, Long recipeId) throws NoSuchRecipeException, NoReviewingYourOwnRecipesException, IllegalStateException, AggregateMissingFieldsException {
+        review.validateReview(review.getRating());
         Recipe recipe = recipeService.getRecipeById(recipeId);
         if (checkIfSubmittingReviewOnOwnRecipe(review, recipe)) {
             throw new NoReviewingYourOwnRecipesException("Really?! You're trying to review your own recipe?! Have some class!");
@@ -73,7 +75,7 @@ public class ReviewService {
         return review;
     }
 
-    public Review updateReviewById(Review reviewToUpdate) throws NoSuchReviewException {
+    public Review updateReviewById(Review reviewToUpdate) throws NoSuchReviewException, AggregateMissingFieldsException {
         try {
             Review review = getReviewById(reviewToUpdate.getId());
         } catch (NoSuchReviewException e) {

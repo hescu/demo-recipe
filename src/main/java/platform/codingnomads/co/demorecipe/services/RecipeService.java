@@ -2,6 +2,7 @@ package platform.codingnomads.co.demorecipe.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import platform.codingnomads.co.demorecipe.exceptions.AggregateMissingFieldsException;
 import platform.codingnomads.co.demorecipe.exceptions.NoSuchRecipeException;
 import platform.codingnomads.co.demorecipe.models.Recipe;
 import platform.codingnomads.co.demorecipe.repositories.RecipeRepo;
@@ -17,8 +18,8 @@ public class RecipeService {
     RecipeRepo recipeRepo;
 
     @Transactional
-    public Recipe createNewRecipe(Recipe recipe) throws IllegalStateException {
-        recipe.validate();
+    public Recipe createNewRecipe(Recipe recipe) throws AggregateMissingFieldsException {
+        recipe.validateRecipe();
         recipe = recipeRepo.save(recipe);
         recipe.generateLocationURI();
         return recipe;
@@ -95,12 +96,12 @@ public class RecipeService {
     }
 
     @Transactional
-    public Recipe updateRecipe(Recipe recipe, boolean forceIdCheck) throws NoSuchRecipeException {
+    public Recipe updateRecipe(Recipe recipe, boolean forceIdCheck) throws NoSuchRecipeException, AggregateMissingFieldsException {
         try {
             if (forceIdCheck) {
                 getRecipeById(recipe.getId());
             }
-            recipe.validate();
+            recipe.validateRecipe();
             Recipe savedRecipe = recipeRepo.save(recipe);
             savedRecipe.generateLocationURI();
             return savedRecipe;
