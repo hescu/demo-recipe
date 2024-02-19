@@ -1,11 +1,11 @@
 package platform.codingnomads.co.demorecipe.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import platform.codingnomads.co.demorecipe.exceptions.AggregateMissingFieldsException;
+import platform.codingnomads.co.demorecipe.models.securitymodels.CustomUserDetails;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 @Entity
@@ -20,8 +20,10 @@ public class Review {
     @GeneratedValue
     private Long id;
 
-    @NotNull
-    private String username;
+    @ManyToOne(optional = false)
+    @JoinColumn
+    @JsonIgnore
+    private CustomUserDetails user;
 
     @NotNull
     private int rating;
@@ -36,11 +38,15 @@ public class Review {
         } else {
             this.rating = rating;
         }
-        if (username == null || username.isEmpty()) {
+        if (user == null) {
             missingFieldsException.addExceptionToBasket(new IllegalStateException("Username missing!"));
         }
         if (!missingFieldsException.getBasket().isEmpty()) {
             throw missingFieldsException;
         }
+    }
+
+    public String getAuthor() {
+        return user.getUsername();
     }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import platform.codingnomads.co.demorecipe.exceptions.AggregateMissingFieldsException;
+import platform.codingnomads.co.demorecipe.models.securitymodels.CustomUserDetails;
 
 import javax.persistence.*;
 import java.net.URI;
@@ -32,8 +33,10 @@ public class Recipe {
     @Column(nullable = false)
     private Integer difficultyRating;
 
-    @Column(nullable = false)
-    private String username;
+    @ManyToOne(optional = false)
+    @JoinColumn
+    @JsonIgnore
+    private CustomUserDetails user;
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "recipeId", nullable = false, foreignKey = @ForeignKey)
@@ -59,21 +62,10 @@ public class Recipe {
     }
 
     public void validateRecipe() throws AggregateMissingFieldsException {
-        AggregateMissingFieldsException missingFieldsException = new AggregateMissingFieldsException();
-        if (ingredients == null || ingredients.isEmpty()) {
-            missingFieldsException.addExceptionToBasket(new IllegalStateException("You have to have at least one ingredient for your recipe!"));
-        }
-        if (steps == null || steps.isEmpty()) {
-            missingFieldsException.addExceptionToBasket(new IllegalStateException("You have to include at least one step for your recipe!"));
-        }
-        if (name == null || name.isEmpty()) {
-            missingFieldsException.addExceptionToBasket(new IllegalStateException("Recipe name missing!"));
-        }
-        if (username == null || username.isEmpty()) {
-            missingFieldsException.addExceptionToBasket(new IllegalStateException("Username missing!"));
-        }
-        if (!missingFieldsException.getBasket().isEmpty()) {
-            throw missingFieldsException;
+        if(ingredients.size() == 0) {
+            throw new IllegalStateException("You have to have at least one ingredient for you recipe!");
+        }else if(steps.size() == 0) {
+            throw new IllegalStateException("You have to include at least one step for your recipe!");
         }
     }
 
@@ -98,5 +90,9 @@ public class Recipe {
             sum += review.getRating();
         }
         return sum / reviews.size();
+    }
+
+    public String getAuthor() {
+        return user.getUsername();
     }
 }

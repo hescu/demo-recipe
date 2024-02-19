@@ -87,6 +87,16 @@ public class ReviewService {
     }
 
     private boolean checkIfSubmittingReviewOnOwnRecipe(Review review, Recipe recipe) {
-        return (Objects.equals(review.getUsername(), recipe.getUsername()));
+        return (Objects.equals(review.getAuthor(), recipe.getAuthor()));
+    }
+
+    public List<Review> getAllReviews() throws NoSuchReviewException {
+        List<Review> reviews = reviewRepo.findAll();
+
+        if (reviews.isEmpty()) {
+            throw new NoSuchReviewException("There are no reviews to be found");
+        }
+
+        return reviews;
     }
 }

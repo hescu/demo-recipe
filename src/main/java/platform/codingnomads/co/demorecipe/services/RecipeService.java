@@ -1,10 +1,12 @@
 package platform.codingnomads.co.demorecipe.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import platform.codingnomads.co.demorecipe.exceptions.AggregateMissingFieldsException;
 import platform.codingnomads.co.demorecipe.exceptions.NoSuchRecipeException;
 import platform.codingnomads.co.demorecipe.models.Recipe;
+import platform.codingnomads.co.demorecipe.models.securitymodels.CustomUserDetails;
 import platform.codingnomads.co.demorecipe.repositories.RecipeRepo;
 
 import javax.transaction.Transactional;
@@ -19,6 +21,8 @@ public class RecipeService {
 
     @Transactional
     public Recipe createNewRecipe(Recipe recipe) throws AggregateMissingFieldsException {
+        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        recipe.setUser(userDetails);
         recipe.validateRecipe();
         recipe = recipeRepo.save(recipe);
         recipe.generateLocationURI();
@@ -42,6 +46,10 @@ public class RecipeService {
 
         if (matchingRecipes.isEmpty()) {
             throw new NoSuchRecipeException("No recipes could be found with that name.");
+        }
+
+        for (Recipe r : matchingRecipes) {
+            r.generateLocationURI();
         }
 
         return matchingRecipes;

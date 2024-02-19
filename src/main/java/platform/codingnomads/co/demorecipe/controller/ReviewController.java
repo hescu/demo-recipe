@@ -1,7 +1,10 @@
 package platform.codingnomads.co.demorecipe.controller;
 
+import jdk.jshell.spi.ExecutionControl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import platform.codingnomads.co.demorecipe.exceptions.AggregateMissingFieldsException;
 import platform.codingnomads.co.demorecipe.exceptions.NoReviewingYourOwnRecipesException;
@@ -9,6 +12,7 @@ import platform.codingnomads.co.demorecipe.exceptions.NoSuchRecipeException;
 import platform.codingnomads.co.demorecipe.exceptions.NoSuchReviewException;
 import platform.codingnomads.co.demorecipe.models.Recipe;
 import platform.codingnomads.co.demorecipe.models.Review;
+import platform.codingnomads.co.demorecipe.models.securitymodels.CustomUserDetails;
 import platform.codingnomads.co.demorecipe.services.ReviewService;
 
 import java.util.List;
@@ -19,6 +23,16 @@ public class ReviewController {
 
     @Autowired
     ReviewService reviewService;
+
+    @GetMapping()
+    public ResponseEntity<?> getAllReviews() {
+        try {
+            List<Review> retrievedReviews = reviewService.getAllReviews();
+            return ResponseEntity.ok(retrievedReviews);
+        } catch (IllegalStateException | NoSuchReviewException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getReviewById(@PathVariable("id") Long id) {
@@ -51,19 +65,21 @@ public class ReviewController {
     }
 
     @PostMapping("/{recipeId}")
-    public ResponseEntity<?> postNewReview(@RequestBody Review review, @PathVariable("recipeId") Long recipeId) {
+    public ResponseEntity<?> postNewReview(@RequestBody Review review,
+                                           @PathVariable("recipeId") Long recipeId, Authentication authentication) {
         try {
+            review.setUser((CustomUserDetails) authentication.getPrincipal());
             Recipe insertedRecipe = reviewService.postNewReview(review, recipeId);
             return ResponseEntity.created(insertedRecipe.getLocationURI()).body(insertedRecipe);
-        } catch (AggregateMissingFieldsException e) {
-            return ResponseEntity.badRequest().body(e.getCombinedMessage());
-        } catch (NoSuchRecipeException | NoReviewingYourOwnRecipesException | IllegalStateException e) {
+        } catch (NoSuchRecipeException | IllegalStateException |
+                 NoReviewingYourOwnRecipesException | AggregateMissingFieldsException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteReviewById(@PathVariable("id") Long id) {
+    @PreAuthorize("hasPermission(#id, 'Review', 'delete')")
+    public ResponseEntity<?> deleteReviewById(@PathVariable("id")Long id) {
         try {
             Review review = reviewService.deleteReviewById(id);
             return ResponseEntity.ok(review);
@@ -73,14 +89,13 @@ public class ReviewController {
     }
 
     @PatchMapping
+    @PreAuthorize("hasPermission(#reviewToUpdate.id, 'Review', 'edit')")
     public ResponseEntity<?> updateReviewById(@RequestBody Review reviewToUpdate) {
         try {
             Review review = reviewService.updateReviewById(reviewToUpdate);
             return ResponseEntity.ok(review);
-        } catch (NoSuchReviewException e) {
+        } catch (NoSuchReviewException | AggregateMissingFieldsException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (AggregateMissingFieldsException e) {
-            return ResponseEntity.badRequest().body(e.getCombinedMessage());
         }
     }
 }
